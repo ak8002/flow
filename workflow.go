@@ -9,18 +9,6 @@ import (
 
 type workflow model.Workflow
 
-func (wf workflow) findState(name string) (*model.State, error) {
-	// Find the state.
-	for _, state := range wf.States {
-		if state.Name == name {
-			return &state, nil
-		}
-	}
-
-	// If we didn't find a start state, return nil.
-	return nil, fmt.Errorf("state %s not found", name)
-}
-
 func parseWf(filePath string) (*workflow, error) {
 	wf, err := parser.FromFile(filePath)
 	if err != nil {
@@ -30,8 +18,21 @@ func parseWf(filePath string) (*workflow, error) {
 	return (*workflow)(wf), nil
 }
 
+func (wf workflow) findState(name string) (*model.State, error) {
+	// Find the state.
+	for _, state := range wf.States {
+		if state.Name == name {
+			return &state, nil
+		}
+	}
+
+	// If we didn't find a start state, return nil.
+	// Parse should have caught this.
+	return nil, fmt.Errorf("state %s not found", name)
+}
+
 func executeWf(wf *workflow) (any, error) {
-	// Start at a start state.
+	// Start at the start state.
 	state, err := wf.findState(wf.Start.StateName)
 	if err != nil {
 		return nil, err
@@ -61,13 +62,19 @@ func executeWf(wf *workflow) (any, error) {
 	}
 }
 
-func startWf(name string) (any, error) {
+var workflowFolder = "workflows"
+
+func invokeWf(name string) (any, error) {
 	// Parse workflow.
-	workflow, err := parseWf(fmt.Sprintf("workflows/%s.sw.json", name))
+	workflow, err := parseWf(fmt.Sprintf("%s/%s.sw.json", workflowFolder, name))
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to parse workflow: %w", err)
 	}
 
 	// Execute workflow.
-	return executeWf(workflow)
+	out, err := executeWf(workflow)
+	if err != nil {
+		return nil, fmt.Errorf("failed to execute workflow: %w", err)
+	}
+	return out, nil
 }
