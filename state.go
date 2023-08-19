@@ -6,7 +6,7 @@ import (
 	"github.com/serverlessworkflow/sdk-go/v2/model"
 )
 
-func executeState(state *model.State) (map[string]model.Object, error) {
+func executeState(state *model.State, input any) (any, error) {
 	// Execute the state.
 	switch state.Type {
 	// case model.StateTypeOperation:
@@ -38,7 +38,7 @@ func executeState(state *model.State) (map[string]model.Object, error) {
 	}
 }
 
-func executeInject(state *model.State) (map[string]model.Object, error) {
+func executeInject(state *model.State) (any, error) {
 	injectState := (*model.InjectState)(state.InjectState)
 	return injectState.Data, nil
 }

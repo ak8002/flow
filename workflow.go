@@ -31,7 +31,7 @@ func (wf workflow) findState(name string) (*model.State, error) {
 	return nil, fmt.Errorf("state %s not found", name)
 }
 
-func executeWf(wf *workflow) (any, error) {
+func executeWf(wf *workflow, input any) (any, error) {
 	// Start at the start state.
 	state, err := wf.findState(wf.Start.StateName)
 	if err != nil {
@@ -41,13 +41,13 @@ func executeWf(wf *workflow) (any, error) {
 	// Execute each state until we reach an end state.
 	for {
 		// Execute the state.
-		out, err := executeState(state)
+		out, err := executeState(state, input)
 		if err != nil {
 			return nil, err
 		}
 
 		// If we reached an end state, return the output.
-		if out != nil {
+		if state.End != nil {
 			return out, nil
 		}
 
@@ -64,7 +64,7 @@ func executeWf(wf *workflow) (any, error) {
 
 var workflowFolder = "workflows"
 
-func invokeWf(name string) (any, error) {
+func invokeWf(name string, input any) (any, error) {
 	// Parse workflow.
 	workflow, err := parseWf(fmt.Sprintf("%s/%s.sw.json", workflowFolder, name))
 	if err != nil {
@@ -72,7 +72,7 @@ func invokeWf(name string) (any, error) {
 	}
 
 	// Execute workflow.
-	out, err := executeWf(workflow)
+	out, err := executeWf(workflow, input)
 	if err != nil {
 		return nil, fmt.Errorf("failed to execute workflow: %w", err)
 	}

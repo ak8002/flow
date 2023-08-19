@@ -14,7 +14,7 @@ func Test_executeInject(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    map[string]model.Object
+		want    any
 		wantErr bool
 	}{
 		{
